@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ID Card PDF Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 15px; background: #f8f8f8; }
+    .section {
+      margin-bottom: 20px;
+      max-width: 450px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 18px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 16px #0001;
+    }
+    label { display: block; margin-bottom: 7px; font-size: 1rem; }
+    input[type="file"] { margin-bottom: 14px; width: 100%; font-size: 1.08rem; padding: 8px 0; }
+    button {
+      width: 100%;
+      padding: 14px 0;
+      font-size: 1.15rem;
+      background: #2997FF;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 8px;
+      font-weight: 500;
+      letter-spacing: 1px;
+    }
+    @media (max-width: 600px) {
+      h2 { font-size: 1.25rem; }
+      .section { padding: 10px; }
+      label, input[type="file"], button, p { font-size: 1rem; }
+    }
+    p { color: #555; text-align: center; margin-top: 18px; }
+  </style>
+</head>
+<body>
+  <h2>ID Card PDF Generator - Images One Below The Other on A4</h2>
+  <div class="section">
+    <label for="topImage">Upload Top Image (Front):</label>
+    <input type="file" id="topImage" accept="image/*">
+    <label for="bottomImage">Upload Bottom Image (Back):</label>
+    <input type="file" id="bottomImage" accept="image/*">
+    <button onclick="generatePDF()">Generate PDF</button>
+    <p>Front and back images will appear vertically centered, one below the other on the same A4 page, or just one image if only one is uploaded.</p>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+    async function generatePDF() {
+      const topFile = document.getElementById('topImage').files[0];
+      const bottomFile = document.getElementById('bottomImage').files[0];
+
+      if (!topFile && !bottomFile) {
+        alert('Please upload at least one image.');
+        return;
+      }
+
+      const unit = 'mm';
+      const a4Width = 210;
+      const a4Height = 297;
+
+      const cardWidth = 100;
+      const cardHeight = 63.08;
+      const spacing = 20;
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit, format: 'a4' });
+
+      const toDataURL = file =>
+        new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.readAsDataURL(file);
+        });
+
+      let topDataURL = null;
+      let bottomDataURL = null;
+
+      if (topFile) {
+        topDataURL = await toDataURL(topFile);
+      }
+      if (bottomFile) {
+        bottomDataURL = await toDataURL(bottomFile);
+      }
+
+      const centerX = (a4Width - cardWidth) / 2;
+
+      if (topDataURL && bottomDataURL) {
+        // Both images: vertically centered with spacing
+        const totalHeight = (cardHeight * 2) + spacing;
+        const startY = (a4Height - totalHeight) / 2;
+        const bottomY = startY + cardHeight + spacing;
+
+        doc.addImage(topDataURL, 'PNG', centerX, startY, cardWidth, cardHeight, undefined, 'FAST');
+        doc.addImage(bottomDataURL, 'PNG', centerX, bottomY, cardWidth, cardHeight, undefined, 'FAST');
+
+      } else if (topDataURL) {
+        // Only top image: center vertically
+        const startY = (a4Height - cardHeight) / 2;
+        doc.addImage(topDataURL, 'PNG', centerX, startY, cardWidth, cardHeight, undefined, 'FAST');
+
+      } else if (bottomDataURL) {
+        // Only bottom image: center vertically
+        const startY = (a4Height - cardHeight) / 2;
+        doc.addImage(bottomDataURL, 'PNG', centerX, startY, cardWidth, cardHeight, undefined, 'FAST');
+      }
+
+      doc.save('ID-Card-A4-Vertical.pdf');
+    }
+  </script>
+</body>
+</html>
