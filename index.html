@@ -56,6 +56,11 @@
       const topFile = document.getElementById('topImage').files[0];
       const bottomFile = document.getElementById('bottomImage').files[0];
 
+      // Validation with specific error if only bottom image uploaded
+      if (!topFile && bottomFile) {
+        alert('Please upload the front image before generating the PDF.');
+        return;
+      }
       if (!topFile && !bottomFile) {
         alert('Please upload at least one image.');
         return;
@@ -104,11 +109,6 @@
         // Only top image: center vertically
         const startY = (a4Height - cardHeight) / 2;
         doc.addImage(topDataURL, 'PNG', centerX, startY, cardWidth, cardHeight, undefined, 'FAST');
-
-      } else if (bottomDataURL) {
-        // Only bottom image: center vertically
-        const startY = (a4Height - cardHeight) / 2;
-        doc.addImage(bottomDataURL, 'PNG', centerX, startY, cardWidth, cardHeight, undefined, 'FAST');
       }
 
       // Generate timestamp string for filename with day-month-year format
