@@ -120,7 +120,7 @@
                         String(now.getMinutes()).padStart(2, '0') +
                         String(now.getSeconds()).padStart(2, '0');
 
-      const filename = `ID-Card-A4-Vertical_${timestamp}.pdf`;
+      const filename = `ID_${timestamp}.pdf`;
       doc.save(filename);
     }
   </script>
