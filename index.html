@@ -2,12 +2,40 @@
 <html>
 <head>
   <title>ID Card PDF Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: Arial, sans-serif; margin: 40px; background: #f8f8f8; }
-    .section { margin-bottom: 20px; }
-    label { display: block; margin-bottom: 5px; }
-    input[type="file"] { margin-bottom: 10px; }
-    button { padding: 10px 20px; font-size: 16px; }
+    body { font-family: Arial, sans-serif; margin: 15px; background: #f8f8f8; }
+    .section {
+      margin-bottom: 20px;
+      max-width: 450px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 18px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 16px #0001;
+    }
+    label { display: block; margin-bottom: 7px; font-size: 1rem; }
+    input[type="file"] { margin-bottom: 14px; width: 100%; font-size: 1.08rem; padding: 8px 0; }
+    button {
+      width: 100%;
+      padding: 14px 0;
+      font-size: 1.15rem;
+      background: #2997FF;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 8px;
+      font-weight: 500;
+      letter-spacing: 1px;
+    }
+    @media (max-width: 600px) {
+      h2 { font-size: 1.25rem; }
+      .section { padding: 10px; }
+      label, input[type="file"], button, p { font-size: 1rem; }
+    }
+    p { color: #555; text-align: center; margin-top: 18px; }
   </style>
 </head>
 <body>
@@ -17,9 +45,9 @@
     <input type="file" id="topImage" accept="image/*">
     <label for="bottomImage">Upload Bottom Image (Back):</label>
     <input type="file" id="bottomImage" accept="image/*">
+    <button onclick="generatePDF()">Generate PDF</button>
+    <p>Front and back images will appear vertically centered, one below the other on the same A4 page, or just one image if only one is uploaded.</p>
   </div>
-  <button onclick="generatePDF()">Generate PDF</button>
-  <p style="margin-top: 24px; color:#555;">Front and back images will appear vertically centered, one below the other on the same A4 page, or just one image if only one is uploaded.</p>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -69,8 +97,8 @@
         const startY = (a4Height - totalHeight) / 2;
         const bottomY = startY + cardHeight + spacing;
 
-        doc.addImage(topDataURL, 'PNG', centerX, 50, cardWidth, cardHeight, undefined, 'FAST');
-        doc.addImage(bottomDataURL, 'PNG', centerX, 140, cardWidth, cardHeight, undefined, 'FAST');
+        doc.addImage(topDataURL, 'PNG', centerX, startY, cardWidth, cardHeight, undefined, 'FAST');
+        doc.addImage(bottomDataURL, 'PNG', centerX, bottomY, cardWidth, cardHeight, undefined, 'FAST');
 
       } else if (topDataURL) {
         // Only top image: center vertically
@@ -83,9 +111,20 @@
         doc.addImage(bottomDataURL, 'PNG', centerX, startY, cardWidth, cardHeight, undefined, 'FAST');
       }
 
-      doc.save('ID-Card-A4-Vertical.pdf');
+      // Generate timestamp string for filename with day-month-year format
+      const now = new Date();
+      const timestamp = String(now.getDate()).padStart(2, '0') + 
+                        String(now.getMonth() + 1).padStart(2, '0') +
+                        now.getFullYear().toString() + '_' +
+                        String(now.getHours()).padStart(2, '0') +
+                        String(now.getMinutes()).padStart(2, '0') +
+                        String(now.getSeconds()).padStart(2, '0');
+
+      const filename = `ID_${timestamp}.pdf`;
+      doc.save(filename);
+
+      alert('PDF generated and downloaded successfully!');
     }
   </script>
 </body>
 </html>
-
