@@ -16,7 +16,13 @@
       box-shadow: 0 4px 16px #0001;
     }
     label { display: block; margin-bottom: 7px; font-size: 1rem; }
-    input[type="file"] { margin-bottom: 14px; width: 100%; font-size: 1.08rem; padding: 8px 0; }
+    input[type="file"], input[type="text"] {
+      margin-bottom: 14px;
+      width: 100%;
+      font-size: 1.08rem;
+      padding: 8px 6px;
+      box-sizing: border-box;
+    }
     button {
       width: 100%;
       padding: 14px 0;
@@ -33,7 +39,7 @@
     @media (max-width: 600px) {
       h2 { font-size: 1.25rem; }
       .section { padding: 10px; }
-      label, input[type="file"], button, p { font-size: 1rem; }
+      label, input[type="file"], input[type="text"], button, p { font-size: 1rem; }
     }
     p { color: #555; text-align: center; margin-top: 18px; }
   </style>
@@ -41,6 +47,9 @@
 <body>
   <h2>ID Card PDF Generator - Images One Below The Other on A4</h2>
   <div class="section">
+    <label for="pdfName">Enter PDF Name:</label>
+    <input type="text" id="pdfName" placeholder="Enter file name (without .pdf)">
+    
     <label for="topImage">Upload Top Image (Front):</label>
     <input type="file" id="topImage" accept="image/*">
     <label for="bottomImage">Upload Bottom Image (Back):</label>
@@ -53,8 +62,15 @@
 
   <script>
     async function generatePDF() {
+      const nameInput = document.getElementById('pdfName').value.trim();
       const topFile = document.getElementById('topImage').files[0];
       const bottomFile = document.getElementById('bottomImage').files[0];
+
+      // Check PDF name
+      if (!nameInput) {
+        alert('Please enter a name for the PDF.');
+        return;
+      }
 
       // Validation with specific error if only bottom image uploaded
       if (!topFile && bottomFile) {
@@ -97,7 +113,6 @@
       const centerX = (a4Width - cardWidth) / 2;
 
       if (topDataURL && bottomDataURL) {
-        // Both images: vertically centered with spacing
         const totalHeight = (cardHeight * 2) + spacing;
         const startY = (a4Height - totalHeight) / 2;
         const bottomY = startY + cardHeight + spacing;
@@ -106,21 +121,21 @@
         doc.addImage(bottomDataURL, 'PNG', centerX, bottomY, cardWidth, cardHeight, undefined, 'FAST');
 
       } else if (topDataURL) {
-        // Only top image: center vertically
         const startY = (a4Height - cardHeight) / 2;
         doc.addImage(topDataURL, 'PNG', centerX, startY, cardWidth, cardHeight, undefined, 'FAST');
       }
 
-      // Generate timestamp string for filename with day-month-year format
+      // Timestamp (day-month-year) appended to user file name
       const now = new Date();
-      const timestamp = String(now.getDate()).padStart(2, '0') + 
+      const timestamp = String(now.getDate()).padStart(2, '0') +
                         String(now.getMonth() + 1).padStart(2, '0') +
                         now.getFullYear().toString() + '_' +
                         String(now.getHours()).padStart(2, '0') +
                         String(now.getMinutes()).padStart(2, '0') +
                         String(now.getSeconds()).padStart(2, '0');
 
-      const filename = `ID_${timestamp}.pdf`;
+      const safeName = nameInput.replace(/[^a-zA-Z0-9_\- ]/g, '').replace(/\s+/g, '_');
+      const filename = `${safeName}_${timestamp}.pdf`;
       doc.save(filename);
 
       alert('PDF generated and downloaded successfully!');
