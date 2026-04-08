@@ -41,11 +41,19 @@
       background: #fafafa;
       font-size: 0.8rem;
       color: #888;
+      flex-shrink: 0;
     }
     .preview-box img {
       max-width: 100%;
       max-height: 100%;
       object-fit: contain;
+      display: none; /* hidden until an image is loaded */
+    }
+    .preview-placeholder {
+      font-size: 0.78rem;
+      color: #aaa;
+      text-align: center;
+      pointer-events: none;
     }
     button {
       width: 100%;
@@ -79,6 +87,7 @@
       <input type="file" id="topImage" accept="image/*">
       <div class="preview-box">
         <img id="topPreview" alt="Front preview" />
+        <span class="preview-placeholder" id="topPlaceholder">No image</span>
       </div>
     </div>
 
@@ -87,6 +96,7 @@
       <input type="file" id="bottomImage" accept="image/*">
       <div class="preview-box">
         <img id="bottomPreview" alt="Back preview" />
+        <span class="preview-placeholder" id="bottomPlaceholder">No image</span>
       </div>
     </div>
 
@@ -97,33 +107,39 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <script>
-    // Small helper to preview selected image in a given <img> element
-    function setupPreview(inputId, imgId) {
+    function setupPreview(inputId, imgId, placeholderId) {
       const input = document.getElementById(inputId);
       const img = document.getElementById(imgId);
+      const placeholder = document.getElementById(placeholderId);
 
       input.addEventListener('change', function () {
         const file = input.files[0];
         if (!file) {
+          img.style.display = 'none';
           img.removeAttribute('src');
+          placeholder.style.display = '';
           return;
         }
         if (!file.type.startsWith('image/')) {
           alert('Please select an image file.');
           input.value = '';
+          img.style.display = 'none';
           img.removeAttribute('src');
+          placeholder.style.display = '';
           return;
         }
         const reader = new FileReader();
         reader.onload = function (e) {
           img.src = e.target.result;
+          img.style.display = 'block';
+          placeholder.style.display = 'none';
         };
         reader.readAsDataURL(file);
       });
     }
 
-    setupPreview('topImage', 'topPreview');
-    setupPreview('bottomImage', 'bottomPreview');
+    setupPreview('topImage', 'topPreview', 'topPlaceholder');
+    setupPreview('bottomImage', 'bottomPreview', 'bottomPlaceholder');
 
     async function generatePDF() {
       const nameInput = document.getElementById('pdfName').value.trim();
@@ -135,7 +151,6 @@
         return;
       }
 
-      // Validation with specific error if only bottom image uploaded
       if (!topFile && bottomFile) {
         alert('Please upload the front image before generating the PDF.');
         return;
@@ -166,12 +181,8 @@
       let topDataURL = null;
       let bottomDataURL = null;
 
-      if (topFile) {
-        topDataURL = await toDataURL(topFile);
-      }
-      if (bottomFile) {
-        bottomDataURL = await toDataURL(bottomFile);
-      }
+      if (topFile) topDataURL = await toDataURL(topFile);
+      if (bottomFile) bottomDataURL = await toDataURL(bottomFile);
 
       const centerX = (a4Width - cardWidth) / 2;
 
@@ -179,7 +190,6 @@
         const totalHeight = (cardHeight * 2) + spacing;
         const startY = (a4Height - totalHeight) / 2;
         const bottomY = startY + cardHeight + spacing;
-
         doc.addImage(topDataURL, 'PNG', centerX, startY, cardWidth, cardHeight, undefined, 'FAST');
         doc.addImage(bottomDataURL, 'PNG', centerX, bottomY, cardWidth, cardHeight, undefined, 'FAST');
       } else if (topDataURL) {
