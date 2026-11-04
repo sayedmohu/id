@@ -355,35 +355,21 @@
 
                 const pageHeight = 297;
 
-                // PAGE MARGINS
+                // FIXED ID CARD WIDTH: 10 CM (100 MM)
 
-                const margin = 10;
-
-                const availableWidth = pageWidth - (margin * 2);
-
-                const availableHeight = pageHeight - (margin * 2);
+                const imageWidth = 100;
 
 
-                // MAINTAIN ORIGINAL IMAGE PROPORTIONS
+                // ADJUST HEIGHT TO PRESERVE THE UPLOADED IMAGE'S ASPECT RATIO
 
                 const imageRatio = img.naturalWidth / img.naturalHeight;
 
-                let imageWidth = availableWidth;
-
-                let imageHeight = imageWidth / imageRatio;
-
-                // FIT IMAGE WITHIN A4 PAGE
-
-                if (imageHeight > availableHeight) {
-
-                    imageHeight = availableHeight;
-
-                    imageWidth = imageHeight * imageRatio;
-
-                }
+                const imageHeight = imageWidth / imageRatio;
 
 
-                // CENTRE IMAGE ON PAGE
+                // CENTRE IMAGE ON A4 PAGE
+
+                // The image is not automatically reduced if its height exceeds the page.
 
                 const x = (pageWidth - imageWidth) / 2;
 
